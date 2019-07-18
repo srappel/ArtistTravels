@@ -1,0 +1,178 @@
+<!DOCTYPE htlm>
+<html>
+
+	<head>
+
+		<meta charset="utf-8">
+		<title>The Artist Travels Project W/Boot</title>
+
+		<!-- Preparing Bootstrap, jQuery, Leaflet, Esri Leaflet, and custom CSS -->
+		<!-- Viewport stuff for Bootstrap -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<!-- Viewport stuff for the Esri plugin to Leaflet -->
+		<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+		<!-- Importing Google Fonts -->
+		<link href="https://fonts.googleapis.com/css?family=Lato:400,900i&display=swap" rel="stylesheet">
+
+		<!-- Adding (CURRENTLY LOCAL) custom CSS sheet -->
+		<link rel="stylesheet" href="artisttravelsbootstrapcss.css">
+
+		<!-- Importing jQuery -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+		<!-- Setting up Leaflet CSS and JS: -->
+		 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+    	integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    	crossorigin=""/>
+   		 <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+    	integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+    	crossorigin=""></script>
+
+   		<!-- Importing Esri Leaflet to use with ArcGIS -->
+    	<script src="https://unpkg.com/esri-leaflet@2.2.4/dist/esri-leaflet.js"
+    	integrity="sha512-tyPum7h2h36X52O2gz+Pe8z/3l+Y9S1yEUscbVs5r5aEY5dFmP1WWRY/WLLElnFHa+k1JBQZSCDGwEAnm2IxAQ=="
+    	crossorigin=""></script>   
+
+    	<!-- Loading Esri Leaflet Renderers from CDN -->
+		<script src="https://unpkg.com/esri-leaflet-renderers@2.0.6/dist/esri-leaflet-renderers.js"
+    	integrity="sha512-mhpdD3igvv7A/84hueuHzV0NIKFHmp2IvWnY5tIdtAHkHF36yySdstEVI11JZCmSY4TCvOkgEoW+zcV/rUfo0A=="
+    	crossorigin=""></script>
+
+    	<!-- Loading Bootstrap CSS -->
+    	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	</head>
+
+	<body>
+
+		<h1 id="artist-travels-title">The Artist Travels Project</h1>
+
+		<div id="spain-map">
+		</div>
+
+		<!-- Loading jQuery's slim build (probably not necessary with full build already loaded, consider taking out), Popper.js, and Bootstrap JS -->
+    	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+		<!-- Loading Esri marker stylizing plugins from CDN -->
+    	<link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet.markercluster@1.0.4/dist/MarkerCluster.Default.css">
+		<link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet.markercluster@1.0.4/dist/MarkerCluster.css">
+		<script src="https://unpkg.com/leaflet.markercluster@1.0.4/dist/leaflet.markercluster.js"></script>
+		
+		<!-- Load Clustered Feature Layer from CDN -->
+		<script src="https://unpkg.com/esri-leaflet-cluster@2.0.0/dist/esri-leaflet-cluster.js"></script>
+
+		<!-- Custom JS -->
+		<script>
+			
+			// Name of the main map to be used
+			var spainMap;
+
+			// Further map variables
+			var centerCoordinates = [40.2368, -3.841];
+			var initialZoom = 7;
+			var maxZoom = 18;
+
+			// Connect to the id and set the central coordinates and initial zoom of the map
+			spainMap = L.map('map').setView(centerCoordinates, initialZoom);
+
+			// Load Esri's world -s-t-r-e-e-t-m-a-p- and image map into variables and add them to the map ***NOTE: VARIABLE NAME INCONSISTENCY***
+			var esriBase = L.esri.basemapLayer('Imagery');
+			esriBase.addTo(spainMap);
+
+			/*
+			// Adding the feature layer of points of painting locations (normally)
+			var pointsFeatureLayer = L.esri.featureLayer({
+   				url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
+  			});
+  			pointsFeatureLayer.addTo(spainMap); 
+			*/
+
+  			/*	Attempt to cluster with base leaflet techniques
+  			// Creating a cluster variable
+  			var clusteredPoints = L.markerClusterGroup({
+        		spiderfyOnMaxZoom: false,
+        		showCoverageOnHover: false,
+        		disableClusteringAtZoom: false
+      		});
+      		clusteredPoints.addLayer(pointsFeatureLayer);
+      		clusteredPoints.addTo(spainMap);
+      		*/
+
+      		/*
+      		var clusterFeatureLayer = L.esri.Cluster.featureLayer({
+      			url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0',
+      			pointToLayer: function (geojson, latlng) {
+    				return L.circleMarker(latlng, 10, {
+      					color: "#2D84C8"
+    				});
+  				}
+      		}).addTo(spainMap);
+			*/
+
+			/*
+			L.esri.Cluster.featureLayer({
+    			url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
+  			}).addTo(spainMap);
+  			*/
+
+  			//	Binding popups to the points
+  			/*pointsFeatureLayer.bindPopup(function(evt) {
+  				var picURL = evt.feature.properties.Picture.slice(1, -1)
+  				return L.Util.template('<h2>{Name_in_lit}</h2>'
+  					+ '<table style="color:white;height:90%;width:300%;"><tr>'
+  					+ '<th><img class="popup-img" src=" '+ picURL +'" alt="'+ picURL + '" style="height:600px;margin-right:15px;float:left;"></th>' 
+  					+ '<th> "{Display_Author_Comments}" <br> Source: {Book_Picture_Information} </th>'
+  					+ '</tr></table>', evt.feature.properties)
+  			});*/
+
+  			// Attempting to use a raw GeoJSON file for the data using Belle's github example
+  			function getData(map) {
+	  			// Loading the data:
+	  			$.ajax("geoPoints.json",{
+	  				dataType: "json",
+	  				// Using a copy of this part from Belle's code for testing
+	  				success: function(response){
+	  					//create marker options
+	      				var geojsonMarkerOptions = {
+	         				radius: 10,
+	         				fillColor: "#ff7800",
+	         				color: "#000",
+	         				weight: 1,
+	         				opacity: 1,
+	         				fillOpacity: 0.8
+	      				};
+	  				}
+	  			});
+	  		};
+
+			// Importing georeferenced tile layers and adding them to the map
+			var spainTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/Espagne1860/MapServer"
+  			});
+  			var alhambraTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/AlhambraPlan/MapServer"
+  			});
+  			var granadaTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/Granada_1894/MapServer"
+  			});
+			spainTileLayer.addTo(spainMap);
+			granadaTileLayer.addTo(spainMap);
+			alhambraTileLayer.addTo(spainMap);
+			var overlayMaps = {
+				"Spain" : spainTileLayer,
+				"Granada" : granadaTileLayer,
+				"Alhambra" : alhambraTileLayer
+			};
+
+			// Adding a layer control box
+			L.control.layers(null, overlayMaps).addTo(spainMap);
+
+		</script>
+
+	</body>
+
+</html>
