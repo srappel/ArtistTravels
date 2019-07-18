@@ -74,21 +74,28 @@
 				By itself, it would successsfully cluster the points, while removing the Spain, Granada, and Alhambra overlay maps,
 				and disabling popups. The popups were disabled because there was no variable to bind the popup template to,
 				and when assigning the below code segment a variable, it would for some reason break it.
-
+			
 			L.esri.Cluster.featureLayer({
    				url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
   			}).addTo(spainMap);
-
-  			*/
+			*/
   			
 			// Adding the feature layer of points of painting locations
 			var pointsFeatureLayer = L.esri.featureLayer({
    				url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
   			});
-  			pointsFeatureLayer.addTo(spainMap); 
+			  
+			  var bunchedMarkers = L.markerClusterGroup({
+				spiderfyOnMaxZoom: false,
+				showCoverageOnHover: false,
+				disableClusteringAtZoom: maxZoom
+			});
+
+			bunchedMarkers.addLayer(pointsFeatureLayer);
+			bunchedMarkers.addTo(spainMap);
 
   			//	Binding popups to the points
-  			pointsFeatureLayer.bindPopup(function(evt) {
+			bunchedMarkers.bindPopup(function(evt) {
   				var picURL = evt.feature.properties.Picture.slice(1, -1)
   				return L.Util.template('<h2>{Name_in_lit}</h2>'
   					+ '<table style="color:white;height:90%;width:300%;"><tr>'
@@ -96,7 +103,7 @@
   					+ '<th> "{Display_Author_Comments}" <br> Source: {Book_Picture_Information} </th>'
   					+ '</tr></table>', evt.feature.properties)
   			});
-
+		
 			// Importing georeferenced tile layers and adding them to the map
 			var spainTileLayer = L.esri.tiledMapLayer({
 				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/Espagne1860/MapServer"
