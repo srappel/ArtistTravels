@@ -6,6 +6,9 @@
 		<meta charset="utf-8">
 		<title>The Artist Travels Project</title>
 
+		<!-- Viewport stuff for the Esri plugin to Leaflet -->
+		<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
 		<!-- Importing Google Fonts -->
 		<link href="https://fonts.googleapis.com/css?family=Lato:400,900i&display=swap" rel="stylesheet">
 
@@ -16,82 +19,113 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
 		<!-- Setting up Leaflet CSS and JS: -->
-		 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
-   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-   crossorigin=""/>
-   		 <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
-   integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
-   crossorigin=""></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+    	integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    	crossorigin=""/>
+   		<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+    	integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+    	crossorigin=""></script>
 
    		<!-- Importing Esri Leaflet to use with ArcGIS -->
     	<script src="https://unpkg.com/esri-leaflet@2.2.4/dist/esri-leaflet.js"
-    integrity="sha512-tyPum7h2h36X52O2gz+Pe8z/3l+Y9S1yEUscbVs5r5aEY5dFmP1WWRY/WLLElnFHa+k1JBQZSCDGwEAnm2IxAQ=="
-    crossorigin=""></script>
+    	integrity="sha512-tyPum7h2h36X52O2gz+Pe8z/3l+Y9S1yEUscbVs5r5aEY5dFmP1WWRY/WLLElnFHa+k1JBQZSCDGwEAnm2IxAQ=="
+    	crossorigin=""></script>   
+
+    	<!-- Load Esri Leaflet Renderers from CDN -->
+		<script src="https://unpkg.com/esri-leaflet-renderers@2.0.6/dist/esri-leaflet-renderers.js"
+    	integrity="sha512-mhpdD3igvv7A/84hueuHzV0NIKFHmp2IvWnY5tIdtAHkHF36yySdstEVI11JZCmSY4TCvOkgEoW+zcV/rUfo0A=="
+    	crossorigin=""></script>
 
 	</head>
 
 	<body>
 
-		<!-- Loading in Libraries that make it possible to use a webmap created on ArcGIS: -->
-		<!-- Load Leaflet Label from GitHub -->
-		<script src="https://leaflet.github.io/Leaflet.label/leaflet.label.js"></script>
-
-		<!-- Include Leaflet.heat from CDN -->
-		<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-
-		<!-- Load Heatmap Feature Layer from CDN -->
-		<script src="https://cdn.jsdelivr.net/leaflet.esri.heatmap-feature-layer/2.0.0-beta.1/esri-leaflet-heatmap-feature-layer.js"></script>
-
-		 <!-- Load Esri Leaflet Renderers from CDN -->
-		 <script src="http://cdn.jsdelivr.net/leaflet.esri.renderers/2.0.2/esri-leaflet-renderers.js"></script>
-
-		 <!-- Load Vector Icon from GitHub -->
-		 <script src="https://muxlab.github.io/Leaflet.VectorIcon/L.VectorIcon.js"></script>
-
-		 <!-- Load Leaflet Omnivore -->
-		 <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
-
-		 <!-- Load L.esri.WebMap -->
-		 <script src="https://cdn.jsdelivr.net/leaflet.esri.webmap/0.4.0/esri-leaflet-webmap.js"></script>
-		 <!-- Loads Complete -->
-
 		<h1 id="artist-travels-title">The Artist Travels Project</h1>
 
-		<div id="map">
+		<!-- Loading Esri marker stylizing plugins from CDN -->
+    	<link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet.markercluster@1.0.4/dist/MarkerCluster.Default.css">
+		<link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet.markercluster@1.0.4/dist/MarkerCluster.css">
+		<script src="https://unpkg.com/leaflet.markercluster@1.0.4/dist/leaflet.markercluster.js"></script>
+
+		<!-- Load Clustered Feature Layer from CDN -->
+		<script src="https://unpkg.com/esri-leaflet-cluster@2.0.0/dist/esri-leaflet-cluster.js"></script>
+
+		<div class='custom-popup' id="spain-map">
 		</div>
+
 		<script>
 			
-			var webmapId = '05597549343b45f38accc8a7dceab08c'; // Default WebMap ID
-			getIdfromUrl();
+			// Name of the main map to be used
+			var spainMap;
 
-			var webmap = L.esri.webMap(webmapId, { map: L.map("map") });
+			// Further map variables
+			var centerCoordinates = [40.2368, -3.841];
+			var initialZoom = 7;
+			var maxZoom = 18;
 
-		    webmap.on('load', function() {
-				var overlayMaps = {};
-				webmap.layers.map(function(l) {
-			        overlayMaps[l.title] = l.layer;
-			    });
-			    L.control.layers({}, overlayMaps, {
-			        position: 'bottomleft'
-			    }).addTo(webmap._map);
-			});
+			// Circle object variables
+			var circleSpecs = {
+				color: 'purple',
+    			fillColor: '#f03',
+    			fillOpacity: 0,
+    			radius: 5000
+			};
 
-		  	function getIdfromUrl() {
-		    	var urlParams = location.search.substring(1).split('&');
-		    	for (var i=0; urlParams[i]; i++) {
-		    	    var param = urlParams[i].split('=');
-		    	    if(param[0] === 'id') {
-		          	  webmapId = param[1]
-		        	}
-		    	}
-		  	}
+			// Connect to the id and set the central coordinates and initial zoom of the map.
+			spainMap = L.map('spain-map').setView(centerCoordinates, initialZoom);
 
-		  	var circle = L.circle([37.178247, -3.592829], {
-			    color: 'red',
-			    fillColor: '#f03',
-			    fillOpacity: 0.5,
-			    radius: 1000
-			}).addTo(webmap);
+			// Load Esri's world image map into variables and add them to the map.
+			var esriBase = L.esri.basemapLayer('Imagery');
+			esriBase.addTo(spainMap);
+			
+			/*  This code segment attempted to replace the regular adding of a points feature layer from ArcGIS (on lines [93-96])
+				By itself, it would successsfully cluster the points, while removing the Spain, Granada, and Alhambra overlay maps,
+				and disabling popups. The popups were disabled because there was no variable to bind the popup template to,
+				and when assigning the below code segment a variable, it would for some reason break it.
+
+			L.esri.Cluster.featureLayer({
+   				url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
+  			}).addTo(spainMap);
+
+  			*/
+  			
+			// Adding the feature layer of points of painting locations
+			var pointsFeatureLayer = L.esri.featureLayer({
+   				url: 'https://services1.arcgis.com/O7h3OCRVxKceyg19/arcgis/rest/services/MAM_Points_update/FeatureServer/0'
+  			});
+  			pointsFeatureLayer.addTo(spainMap); 
+
+  			//	Binding popups to the points
+  			pointsFeatureLayer.bindPopup(function(evt) {
+  				var picURL = evt.feature.properties.Picture.slice(1, -1)
+  				return L.Util.template('<h2>{Name_in_lit}</h2>'
+  					+ '<table style="color:white;height:90%;width:300%;"><tr>'
+  					+ '<th><img class="popup-img" src=" '+ picURL +'" alt="'+ picURL + '" style="height:600px;margin-right:15px;float:left;"></th>' 
+  					+ '<th> "{Display_Author_Comments}" <br> Source: {Book_Picture_Information} </th>'
+  					+ '</tr></table>', evt.feature.properties)
+  			});
+
+			// Importing georeferenced tile layers and adding them to the map
+			var spainTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/Espagne1860/MapServer"
+  			});
+  			var alhambraTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/AlhambraPlan/MapServer"
+  			});
+  			var granadaTileLayer = L.esri.tiledMapLayer({
+				url: "https://tiles.arcgis.com/tiles/O7h3OCRVxKceyg19/arcgis/rest/services/Granada_1894/MapServer"
+  			});
+			spainTileLayer.addTo(spainMap);
+			granadaTileLayer.addTo(spainMap);
+			alhambraTileLayer.addTo(spainMap);
+			var overlayMaps = {
+				"Spain" : spainTileLayer,
+				"Granada" : granadaTileLayer,
+				"Alhambra" : alhambraTileLayer
+			};
+
+			// Adding a layer control box
+			L.control.layers(null, overlayMaps).addTo(spainMap);
 
 		</script>
 		
